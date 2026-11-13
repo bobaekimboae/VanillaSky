@@ -167,7 +167,12 @@
     const stopped=new Promise((resolve,reject)=>{recorder.addEventListener('stop',resolve,{once:true});recorder.addEventListener('error',event=>reject(event.error||new Error('WebM 녹화 중 오류가 발생했습니다.')),{once:true});});
     recorder.start(250);
     await new Promise(resolve=>{function frame(){const elapsed=performance.now()-started;let remain=elapsed/1000;sceneIndex=0;while(sceneIndex<state.scenes.length-1&&remain>=state.scenes[sceneIndex].duration){remain-=state.scenes[sceneIndex].duration;sceneIndex++;}currentScene=sceneIndex;drawFrame(sceneIndex,remain*1000);const pct=Math.min(100,Math.floor(elapsed/duration*100));$('#progressValue').textContent=`${pct}%`;$('#progressBar').style.width=`${pct}%`;$('#progressLabel').textContent=`${sceneIndex+1} / ${state.scenes.length} 장면 렌더링`;if(elapsed>=duration){resolve();return;}requestAnimationFrame(frame);}frame();});
-    recorder.stop(); await stopped;
+    recorder.stop();
+    // Some embedded browsers delay MediaRecorder's stop event even after the
+    // final frame was captured. Keep the generated chunks and finish the local
+    // export after a short bounded wait instead of leaving the UI at 100%.
+    await Promise.race([stopped,new Promise(resolve=>setTimeout(resolve,4000))]);
+    if(!chunks.length)throw new Error('녹화 데이터가 생성되지 않았습니다. 브라우저를 새로고침한 뒤 다시 시도해 주세요.');
     state.rendered=new Blob(chunks,{type:mime});const url=URL.createObjectURL(state.rendered);const anchor=document.createElement('a');anchor.href=url;const slug=$('#carName').value.trim().replace(/[^a-z0-9가-힣]+/gi,'-').replace(/^-|-$/g,'')||'vanillasky-video';anchor.download=`${slug}-${state.ratio==='9:16'?'shorts':'listing'}.webm`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
     stream.getTracks().forEach(track=>track.stop());audioNodes.forEach(node=>{try{node.stop?.();node.disconnect?.();}catch{}});audioContext?.close();$('#progressLabel').textContent='영상 다운로드가 시작됐어요';$('#progressValue').textContent='완료';$('#progressBar').style.width='100%';$('#downloadVideo').disabled=false;$('#downloadVideo').innerHTML='영상 다시 만들기 <span>↓</span>';$('#downloadAgain').hidden=false;setStep(4);
   }
