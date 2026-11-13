@@ -17,11 +17,12 @@
 
 ## Verification
 
-- Deployed GitHub Pages flow: uploaded the provided 3 BMW photos, filled vehicle details, advanced to the editor, selected social format/9:16 and confirmed a real-photo vertical preview.
-- First WebM export test reached 100% but did not complete in the embedded browser. Updated the renderer with a bounded stop-event wait; final download behavior still requires confirmation.
-- Browser console showed no errors during the observed session.
-- Source AI generation/payment parity not tested or claimed.
+- Deployed GitHub Pages flow: uploaded the provided three BMW photos, entered vehicle details, selected social format, 9:16 and the three-scene template, then confirmed the real-photo vertical preview.
+- Rendered and downloaded the resulting WebM file in the browser. The UI reached `4 / 4 · 다운로드`, displayed `영상 파일이 준비됐어요` and `영상 다운로드가 시작됐어요 · 완료`; the browser download event returned a local file path.
+- The embedded browser initially kept waiting at 100% for the recorder stop event. The renderer now waits a bounded four seconds after stop, and the script URL is versioned to bypass a stale cached renderer.
+- No browser console errors were observed during the successful run.
+- Source AI generation/payment parity was not tested or claimed.
 
 ## Current outcome
 
-Photo upload and preview are verified on the deployed site. WebM download and generated-AI parity are not yet confirmed; do not describe the app as identical to the source AI service.
+Photo upload → vehicle details → Korean editor → 9:16 preview → WebM download was verified on the deployed site. This is a client-side slideshow renderer, not the source service's paid generative video backend.
